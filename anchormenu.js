@@ -49,6 +49,10 @@ Anchormenu = {
 
         this.initLinks();
 
+        if( linkedAnchors.length == 0 ) {
+            elementMenu.hide();
+        }
+
         return elementMenu;
     },
 
@@ -119,7 +123,7 @@ Anchormenu = {
 
                 linksHtml +=
                     '<li' + classLi + '>'
-                        + '<a id="' + elementId + '" href="javascript:void(0)">' + this.name.replace('-', ' ') + '</a>'
+                        + '<a id="' + elementId + '" href="javascript:void(0)">' + this.name.replace(/\-/g, ' ') + '</a>'
                   + '</li>';
 
                 anchors[idLink] = {
@@ -139,8 +143,6 @@ Anchormenu = {
      */
     setDefaultStyle: function(element) {
         element.css({
-//            'background-color': '#fff',
-//            'border':           '1px solid #ccc',
             'padding':          '8px 10px 12px',
             'position':         'fixed',
             'top':              '90px',
