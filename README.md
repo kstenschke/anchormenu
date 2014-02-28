@@ -1,4 +1,4 @@
-anchormenu
+Anchormenu
 ==========
 
-Generates an index menu from local anchors
+Renders and inserts a menu of local anchors from current DOM
