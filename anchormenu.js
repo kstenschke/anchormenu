@@ -18,6 +18,8 @@ Anchormenu = {
         idMenu:             'anchormenu',
         classUl:            '',
         classLi:            '',
+        addHeadline:        true,
+        headlineText:       'Contents:',
         applyDefaultStyle:  true,            // Render inline style tag w/ default look?
         scroll:     {
             duration:       300,
@@ -71,6 +73,13 @@ Anchormenu = {
             this.config.classLi  = config.classLi;
         }
 
+        if( 'addHeadline' in config ) {
+            this.config.addHeadline  = config.addHeadline;
+        }
+        if( 'headlineText' in config ) {
+            this.config.headlineText  = config.headlineText;
+        }
+
         if( 'applyDefaultStyle' in config ) {
             this.config.applyDefaultStyle  = config.applyDefaultStyle;
         }
@@ -87,6 +96,7 @@ Anchormenu = {
         var classLi = !!this.config.classUl.trim() ? ' class="'+ this.config.classUl + '"' : '';
 
         return '<div id="' + this.config.idMenu + '">'
+                + (this.config.addHeadline ? ('<h1>' + this.config.headlineText + '</h1>') : '')
                 + '<ul' + classLi + '>'
                     + this.renderLinks()
                 + '</ul>'
@@ -129,8 +139,8 @@ Anchormenu = {
      */
     setDefaultStyle: function(element) {
         element.css({
-            'background-color': '#fff',
-            'border':           '1px solid #ccc',
+//            'background-color': '#fff',
+//            'border':           '1px solid #ccc',
             'padding':          '8px 10px 12px',
             'position':         'fixed',
             'top':              '90px',
