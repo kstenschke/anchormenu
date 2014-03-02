@@ -43,15 +43,17 @@ Anchormenu = {
         elementBefore.append( this.renderMenu() );
         var elementMenu = this.getMenu();
 
-        if( this.config.applyDefaultStyle ) {
-            this.setDefaultStyle(elementMenu);
+        if( jQuery.isEmptyObject(this.linkedAnchors) || this.linkedAnchors.length == 0 ) {
+            elementMenu.hide();
+        } else {
+            if( this.config.applyDefaultStyle ) {
+                this.setDefaultStyle(elementMenu);
+            }
+            this.setHighlighterStyle( elementMenu.width() );
+            this.installHighlighterScrollObserver();
         }
 
         this.initLinks();
-
-        if( linkedAnchors.length == 0 ) {
-            elementMenu.hide();
-        }
 
         return elementMenu;
     },
@@ -135,7 +137,7 @@ Anchormenu = {
 
         this.linkedAnchors    = anchors;
 
-        return linksHtml;
+        return '<div id="' + prefixLinkId + 'linkhighlighter"></div>' + "\n" + linksHtml;
     },
 
     /**
@@ -145,9 +147,100 @@ Anchormenu = {
         element.css({
             'padding':          '8px 10px 12px',
             'position':         'fixed',
-            'top':              '90px',
+            'top':              '158px',
             'z-index':          '60000'
         });
+    },
+
+    /**
+     * @param   {Number}  width
+     */
+    setHighlighterStyle: function(width) {
+        jQuery('#' + this.config.idMenu + 'linkhighlighter').css({
+            'background-color': '#ECECEC',
+            'height':           '20px',
+            'margin':           '10px 0 -25px -4px',
+            'padding':          '2px 10px',
+            'width':            width + 'px',
+            'z-index':          '59999'
+        });
+    },
+
+    /**
+     * Move anchor link highlighter relatively to page scrolltop
+     */
+    installHighlighterScrollObserver: function() {
+        var anchorOffsets       = this.getAnchorOffsets();
+        var offsetsInMenu       = anchorOffsets[0].split(",");
+        var offsetsInDom        = anchorOffsets[1].split(",");
+        var scrollAnchorOffset  = this.config.scroll.anchorOffset;
+
+        var idHighlighter   = this.config.idMenu + 'linkhighlighter';
+
+        jQuery(document).scroll(function() {
+            var $this       = jQuery(this);
+            var scrollTop   = $this.scrollTop();
+            var highlighter = jQuery('#' + idHighlighter);
+
+            var indexPrevious   = 0;
+            var indexNext       = 0;
+            var isFoundNext     = false;
+
+            jQuery.each(offsetsInDom, function(index, value) {
+                if( value <= scrollTop ) {
+                    indexPrevious = index;
+                } else if( value > scrollTop && !isFoundNext ) {
+                    indexNext   = index;
+                    isFoundNext = true;
+                }
+            });
+
+            var offset  = (offsetsInMenu[ indexPrevious ] - offsetsInMenu[0]);
+
+            var distanceFullInDom = ( offsetsInDom[indexPrevious+1] - offsetsInDom[indexPrevious] );
+            var distanceDone = (scrollTop - scrollAnchorOffset) - offsetsInDom[indexPrevious];
+            var percentDone  = (distanceDone / distanceFullInDom) * 100;
+
+            var distanceFullInMenu = ( offsetsInMenu[indexPrevious+1] - offsetsInMenu[indexPrevious] );
+            var distanceDoneInMenu = distanceFullInMenu/100 * percentDone;
+
+            if( percentDone > 0 ) {
+                offset+= distanceDoneInMenu;
+            }
+
+            var offsetMax   = (offsetsInMenu[ offsetsInMenu.length-1 ] - offsetsInMenu[0]);
+
+            if( offset < 0 ) {
+                offset = 0;
+            } else if( offset > offsetMax ) {
+                offset = offsetMax;
+            } else if( document.documentElement.clientHeight + jQuery(document).scrollTop() >= document.body.offsetHeight  ) {
+                    // Bottom reached?
+                offset = offsetMax;
+            }
+
+            highlighter.css({
+                'margin-top':      (10 + offset) + 'px',
+                'margin-bottom':   (-25 - offset) + 'px'
+            });
+        });
+    },
+
+    /**
+     * @returns {Array}     Lists of anchor offsets in 1. menu, 2. DOM. Ex: ['100,400,450,...', '10,20,30,...']
+     */
+    getAnchorOffsets: function() {
+        var offsets = ['', ''];
+
+        jQuery.each(this.linkedAnchors, function(index, linkAnchor) {
+            offsets[0] += jQuery('#' + linkAnchor.idLink).offset().top + ',';
+            offsets[1] += jQuery('a[name=' + linkAnchor.nameAnchor + ']').offset().top + ',';
+        });
+
+        offsets[0]  = offsets[0].substr(0, offsets[0].length-1);
+        offsets[1]  = offsets[1].substr(0, offsets[1].length-1);
+
+        return offsets;
     },
 
     /**
@@ -176,11 +269,11 @@ Anchormenu = {
         var anchorOffset    = this.config.scroll.anchorOffset;
 
         jQuery.each(this.linkedAnchors, function(index, linkAnchor) {
-            var link    = jQuery('#' + linkAnchor.idLink);
-            var anchor  = jQuery('a[name=' + linkAnchor.nameAnchor + ']');
+            var currentLink    = jQuery('#' + linkAnchor.idLink);
+            var currentAnchor  = jQuery('a[name=' + linkAnchor.nameAnchor + ']');
 
-            link.bind('click', function() {
-                Anchormenu.scrollToAnchor( anchor, anchorOffset, scrollDuration );
+            currentLink.bind('click', function() {
+                Anchormenu.scrollToAnchor( currentAnchor, anchorOffset, scrollDuration );
             });
         });
     }
