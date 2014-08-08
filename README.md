@@ -1,4 +1,4 @@
 Anchormenu
 ==========
 
-JavaScript Class that renders and inserts a menu of local anchors from current DOM, using jQuery
+jQuery plugin to generate an index menu from local anchors
